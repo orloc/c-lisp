@@ -5,13 +5,7 @@
 typedef struct lval {
     int type;
     long num;
-
-    char* err;
-    char* sym;
-
-    int count;
-
-    struct lval** cell;
+    int err;
 } lval;
 
 enum { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR };
@@ -24,11 +18,6 @@ int count_branches(mpc_ast_t* t);
 double min (double x, double y);
 double max (double x, double y);
 void lval_print(lval v);
-lval* lval_num(long x);
-lval* lval_err(char* m);
-lval* lval_sym(char* s);
-lval* lval_sexpr(void);
-void lval_del(lval* v);
 
 #ifdef _WIN32
 
