@@ -35,17 +35,10 @@ typedef struct lval {
 enum { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR , LVAL_QEXPR};
 enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 
-double eval(mpc_ast_t* t);
-double eval_op(double x, char* op, double y);
 void lval_expr_print(lval* v, char open, char close);
 void lval_print(lval* v);
 void lval_println(lval* v);
 void lval_del(lval* v);
-lval* lval_eval_sexpr(lval* v);
-lval* lval_eval(lval* v);
-lval* lval_take(lval* v, int i);
-lval* lval_pop(lval* v, int i);
-lval* builtin_op(lval* a, char* op);
 lval* lval_num(long x);
 lval* lval_err(char* m);
 lval* lval_sym(char* s);
@@ -54,4 +47,9 @@ lval* lval_qexpr(void);
 lval* lval_add(lval* v, lval* x);
 lval* lval_read_num(mpc_ast_t* t);
 lval* lval_read(mpc_ast_t* t);
+lval* lval_eval(lval* v);
+lval* lval_eval_sexpr(lval* v);
+lval* lval_pop(lval* v, int i);
+lval* lval_take(lval* v, int i);
+lval* builtin_op(lval* a, char* op);
 
