@@ -20,6 +20,8 @@ void add_history(char* unused) {}
     #endif
 #endif
 
+#define LASSERT(args, cond, err) if (!(cond)) { lval_del(args); return lval_err(err); }
+
 typedef struct lval {
     int type;
     long num;
