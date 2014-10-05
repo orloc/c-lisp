@@ -19,13 +19,10 @@ enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 
 double eval(mpc_ast_t* t);
 double eval_op(double x, char* op, double y);
-int count_leaves(mpc_ast_t* t);
-int count_branches(mpc_ast_t* t);
-double min (double x, double y);
-double max (double x, double y);
 void lval_expr_print(lval* v, char open, char close);
 void lval_print(lval* v);
 void lval_println(lval* v);
+void lval_del(lval* v);
 lval* lval_num(long x);
 lval* lval_err(char* m);
 lval* lval_sym(char* s);
@@ -33,7 +30,6 @@ lval* lval_sexpr(void);
 lval* lval_add(lval* v, lval* x);
 lval* lval_read_num(mpc_ast_t* t);
 lval* lval_read(mpc_ast_t* t);
-void lval_del(lval* v);
 
 #ifdef _WIN32
 

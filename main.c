@@ -10,7 +10,7 @@ int main(int argc, char** argv){
 
     mpca_lang(MPCA_LANG_DEFAULT,
         "                                                                       \
-            number      : /-?[0-9]+;                                            \
+            number      : /-?[0-9]+/;                                            \
             symbol    : '+' | '-' | '/' | '*';                                  \
             sexpr    : '(' <expr>* ')';                                         \
             expr        : <number> | <symbol> | <sexpr> ;                       \
@@ -18,7 +18,7 @@ int main(int argc, char** argv){
         ",
     Number, Symbol, Sexpr, Expr, Lispy);
 
-    puts("Lispy Version 0.0.0.1");
+    puts("Lispy Version 0.0.0.2");
     puts("Ctrl+c to Exit\n");
 
     while(1){
@@ -29,7 +29,7 @@ int main(int argc, char** argv){
 
         if (mpc_parse("<stdin>", input, Lispy, &r)) {
             lval* x = lval_read(r.output);
-            lval_print(x);
+            lval_println(x);
             lval_del(x);
         }
         free(input);
@@ -63,40 +63,8 @@ double eval_op(double x, char* op, double y) {
     if (strcmp(op, "*") == 0) { return x * y; }
     if (strcmp(op, "%") == 0) { return fmod(x,y); }
     if (strcmp(op, "^") == 0) { return pow(x,y); }
-    if (strcmp(op, "min") == 0) { return min(x,y); }
-    if (strcmp(op, "max") == 0) { return max(x,y); }
 
     return 0;
-}
-
-int count_leaves(mpc_ast_t* t){
-    if (t->children_num == 0){
-        return 1;
-    }
-
-    int i = 0;
-    int count = 0;
-    while( i < t->children_num ){
-        count += count_leaves(t->children[i]);
-        i++;
-    }
-
-    return count;
-}
-
-// not implemented
-int count_branches(mpc_ast_t* t){
-    return 1;
-}
-
-double min (double x, double y){
-    if (x > y) { return y; }
-    return x;
-}
-
-double max (double x, double y){
-    if (x < y) { return y; }
-    return x;
 }
 
 void lval_expr_print(lval* v, char open, char close){
@@ -104,8 +72,7 @@ void lval_expr_print(lval* v, char open, char close){
 
     for (int i = 0; i < v->count; i++) {
         lval_print(v->cell[i]);
-
-    // dont print trailing space
+        // dont print trailing space
         if (i != (v->count-1)){
             putchar(' ');
         }
@@ -204,15 +171,12 @@ lval* lval_read(mpc_ast_t* t) {
     if (strcmp(t->tag, "sexpr")) { x = lval_sexpr(); }
 
     for (int i = 0; i < t->children_num; i++){
-        if (strcmp(t->children[i]->contents, "(") == 0
-            || strcmp(t->children[i]->contents, ")") == 0
-            || strcmp(t->children[i]->contents, "{") == 0
-            || strcmp(t->children[i]->contents, "}") == 0
-            || strcmp(t->children[i]->tag, "regex") == 0
-        ) { continue; }
-
+        if (strcmp(t->children[i]->contents, "(") == 0) { continue; }
+        if (strcmp(t->children[i]->contents, ")") == 0) { continue; }
+        if (strcmp(t->children[i]->contents, "{") == 0) { continue; }
+        if (strcmp(t->children[i]->contents, "}") == 0) { continue; }
+        if (strcmp(t->children[i]->tag, "regex") == 0) { continue; }
         x = lval_add(x, lval_read(t->children[i]));
-
     }
 
     return x;
