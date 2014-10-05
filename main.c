@@ -28,15 +28,9 @@ int main(int argc, char** argv){
         mpc_result_t r;
 
         if (mpc_parse("<stdin>", input, Lispy, &r)) {
-            mpc_ast_print(r.output);
-            puts("\n");
-            double result = eval(r.output);
-            printf("Result: %f\n", result);
-            printf("Leaf Count: %i\n", count_leaves(r.output));
-            mpc_ast_delete(r.output);
-        } else {
-            mpc_err_print(r.error);
-            mpc_err_delete(r.error);
+            lval* x = lval_read(r.output);
+            lval_print(x);
+            lval_del(x);
         }
         free(input);
     }
