@@ -67,6 +67,7 @@ double eval_op(double x, char* op, double y) {
     return 0;
 }
 
+
 void lval_expr_print(lval* v, char open, char close){
     putchar(open);
 
@@ -182,3 +183,61 @@ lval* lval_read(mpc_ast_t* t) {
     return x;
 }
 
+lval* lval_eval(lval* v){
+    if (v->type == LVAL_SEXPR) { return lval_eval_sexpr(v); }
+
+    return v;
+}
+
+lval* lval_eval_sexpr(lval* v) {
+    // evaluate all the children
+    for (int i = 0; i < v->count; i++){
+        v->cell[i] = lval_eval(v->cell[i]);
+    }
+
+    // error checking
+    for (int i = 0; i < v->count; i++){
+        if (v->cell[i]->type == LVAL_ERR) {
+            return lval_take(v, i);
+        }
+    }
+
+    // empty
+    if (v->count == 0) { return v; }
+
+    if (v->count == 1){
+        return lval_take(v, 0);
+    }
+
+    // ensure first elem is a symbol
+    lval* f = lval_pop(v, 0);
+    if (f->type != LVAL_SYM){
+        // dealloc
+        lval_del(f); lval_del(v);
+
+        return lval_err("S-expression Does not start with a symbol!");
+    }
+
+    // call builtin with operator
+    lval* result = builtin_op(v, f->sym);
+    lval_del(f);
+    return result;
+}
+
+lval* lval_pop(lval* v, int i) {
+    lval* x = v->cell[i];
+
+    // shift the memory following the item at "i"" over the top of it
+    memmove(&v->cell[i], &v->cell[i+1], sizeof(lval*) * (v->count-i-1));
+    v->count--;
+
+    v->cell = realloc(v->cell, sizeof(lval*) * v->count);
+
+    return x;
+}
+
+lval* lval_take(lval* v, int i) {
+    lval* x = lval_pop(v, i);
+    lval_del(v);
+    return x;
+}
