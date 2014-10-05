@@ -132,6 +132,26 @@ void lval_print(lval* v){
      putchar('\n');
  }
 
+void lval_del(lval* v){
+    switch(v->type){
+        // dont do anything
+        case LVAL_NUM:  break;
+        case LVAL_ERR: free(v->err); break;
+        case LVAL_SYM: free(v->sym); break;
+
+        // We need to recurse into this to delete everything
+        case LVAL_SEXPR:
+            for (int i = 0; i < v->count; i++){
+                lval_del(v->cell[i]);
+            }
+            free(v->cell);
+           break;
+    }
+
+    // free the initial value
+    free(v);
+}
+
 /* Construct new pointer to a new number lval */
 lval* lval_num(long x){
     lval* v = malloc(sizeof(lval));
@@ -204,22 +224,3 @@ lval* lval_read(mpc_ast_t* t) {
     return x;
 }
 
-void lval_del(lval* v){
-    switch(v->type){
-        // dont do anything
-        case LVAL_NUM:  break;
-        case LVAL_ERR: free(v->err); break;
-        case LVAL_SYM: free(v->sym); break;
-
-        // We need to recurse into this to delete everything
-        case LVAL_SEXPR:
-            for (int i = 0; i < v->count; i++){
-                lval_del(v->cell[i]);
-            }
-            free(v->cell);
-           break;
-    }
-
-    // free the initial value
-    free(v);
-}
