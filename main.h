@@ -30,6 +30,7 @@ lval* lval_sym(char* s);
 lval* lval_sexpr(void);
 lval* lval_add(lval* v, lval* x);
 lval* lval_read_num(mpc_ast_t* t);
+lval* lval_read(mpc_ast_t* t);
 void lval_del(lval* v);
 
 #ifdef _WIN32

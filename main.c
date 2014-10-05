@@ -168,6 +168,30 @@ lval* lval_read_num(mpc_ast_t* t) {
     return errno != ERANGE ? lval_num(x) : lval_err("invalid number");
 }
 
+lval* lval_read(mpc_ast_t* t) {
+    // If there is a symbol or num proxy to that type
+    if (strstr(t->tag, "number")) { return lval_read_num(t); }
+    if (strstr(t->tag, "symbol")) { return lval_sym(t->contents); }
+
+    lval* x = NULL;
+    if (strcmp(t->tag, ">") == 0) { x = lval_sexpr(); }
+    if (strcmp(t->tag, "sexpr")) { x = lval_sexpr(); }
+
+    for (int i = 0; i < t->children_num; i++){
+        if (strcmp(t->children[i]->contents, "(") == 0
+            || strcmp(t->children[i]->contents, ")") == 0
+            || strcmp(t->children[i]->contents, "{") == 0
+            || strcmp(t->children[i]->contents, "}") == 0
+            || strcmp(t->children[i]->tag, "regex") == 0
+        ) { continue; }
+
+        x = lval_add(x, lval_read(t->children[i]));
+
+    }
+
+    return x;
+}
+
 void lval_del(lval* v){
     switch(v->type){
         // dont do anything
