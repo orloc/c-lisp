@@ -147,12 +147,25 @@ lval* lval_sym(char* s) {
 }
 
 /* Construct new pointer to a new err lval */
-lval* lval_xexpr(void) {
+lval* lval_sexpr(void) {
     lval* v = malloc(sizeof(lval));
     v->type = LVAL_SEXPR;
     v->count = 0;
     v->cell = NULL;
     return v;
+}
+
+lval* lval_add(lval* v, lval* x) {
+    v->count++;
+    v->cell = realloc(v->cell, sizeof(lval*) * v->count);
+    v->cell[v->count-1] = x;
+    return v;
+}
+
+lval* lval_read_num(mpc_ast_t* t) {
+    errno = 0;
+    long x = strtol(t->contents, NULL, 10);
+    return errno != ERANGE ? lval_num(x) : lval_err("invalid number");
 }
 
 void lval_del(lval* v){
@@ -171,5 +184,6 @@ void lval_del(lval* v){
            break;
     }
 
+    // free the initial value
     free(v);
 }
