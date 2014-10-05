@@ -156,4 +156,20 @@ lval* lval_xexpr(void) {
 }
 
 void lval_del(lval* v){
+    switch(v->type){
+        // dont do anything
+        case LVAL_NUM:  break;
+        case LVAL_ERR: free(v->err); break;
+        case LVAL_SYM: free(v->sym); break;
+
+        // We need to recurse into this to delete everything
+        case LVAL_SEXPR:
+            for (int i = 0; i < v->count; i++){
+                lval_del(v->cell[i]);
+            }
+            free(v->cell);
+           break;
+    }
+
+    free(v);
 }

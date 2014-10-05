@@ -25,8 +25,8 @@ double min (double x, double y);
 double max (double x, double y);
 void lval_print(lval v);
 lval* lval_num(long x);
-lval* lval_err(char* x);
-lval* lval_sym(char* x);
+lval* lval_err(char* m);
+lval* lval_sym(char* s);
 lval* lval_sexpr(void);
 void lval_del(lval* v);
 
