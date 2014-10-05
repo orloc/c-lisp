@@ -42,6 +42,7 @@ int main(int argc, char** argv){
     return 0;
 }
 
+// Print functions
 void lval_expr_print(lval* v, char open, char close){
     putchar(open);
 
@@ -53,27 +54,6 @@ void lval_expr_print(lval* v, char open, char close){
         }
     }
     putchar(close);
-}
-
-lenv* lenv_new(void) {
-    lenv* e = malloc(sizeof(lenv));
-
-    e->count = 0;
-    e->syms = NULL;
-    e->vals = NULL;
-
-    return e;
-}
-
-void lenv_del(lenv* e){
-    for( int i = 0; i < e->count; i++){
-        free(e->syms[i]);
-        lval_del(e->vals[i]);
-    }
-
-    free(e->syms);
-    free(e->vals);
-    free(e);
 }
 
 void lval_print(lval* v){
@@ -90,6 +70,8 @@ void lval_print(lval* v){
      lval_print(v);
      putchar('\n');
  }
+
+// Lval constructors / manipulation1
 
 void lval_del(lval* v){
     switch(v->type){
@@ -399,3 +381,55 @@ lval* builtin_join(lval* a){
     return x;
 }
 
+lenv* lenv_new(void) {
+    lenv* e = malloc(sizeof(lenv));
+
+    e->count = 0;
+    e->syms = NULL;
+    e->vals = NULL;
+
+    return e;
+}
+
+lval* lenv_get(lenv* e, lval* k){
+    for (int i = 0; i < e->count; i++){
+        // does stored string match symbol? if so return
+        if (strcmp(e->syms[i], k->sym) == 0) { return lval_copy(e->vals[i]); }
+    }
+
+    return lval_err("unbound symbol");
+
+}
+
+void lenv_put(lenv* e, lval* k, lval* v){
+    // check if element exists
+    for ( int i = 0; i < e->count; i++){
+        // if its found overwrite the current value and replace it with new one
+        if (strcmp(e->syms[i], k->sym) == 0) {
+            lval_del(e->vals[i]);
+            e->vals[i] = lval_copy(v);
+            return;
+        }
+    }
+
+    // no entry found
+    e->count++;
+    e->vals = realloc(e->vals, sizeof(lval*) * e->count);
+    e->syms = realloc(e->syms, sizeof(char*) * e->count);
+
+    e->vals[e->count-1] = lval_copy(v);
+    e->syms[e->count-1] = malloc(strlen(k->sym) + 1);
+
+    strcpy(e->syms[e->count-1], k->sym);
+}
+
+void lenv_del(lenv* e){
+    for( int i = 0; i < e->count; i++){
+        free(e->syms[i]);
+        lval_del(e->vals[i]);
+    }
+
+    free(e->syms);
+    free(e->vals);
+    free(e);
+}

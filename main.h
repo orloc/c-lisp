@@ -36,26 +36,19 @@ typedef lval*(*lbuiltin)(lenv*, lval*);
 struct lval {
     int type;
     long num;
-
     char* err;
     char* sym;
-
     lbuiltin fun;
-
     int count;
-
     struct lval** cell;
 };
 
 struct lenv {
     int count;
-
     char** syms;
     lval** vals;
 }
 
-lenv* lenv_new(void);
-void lenv_del(lenv* e);
 void lval_expr_print(lval* v, char open, char close);
 void lval_print(lval* v);
 void lval_println(lval* v);
@@ -80,4 +73,8 @@ lval* builtin_tail(lval* a);
 lval* builtin_list(lval* a);
 lval* builtin_eval(lval* a);
 lval* builtin_join(lval* a);
+lenv* lenv_new(void);
+lval* lenv_get(lenv* e, lval* k);
+void lenv_put(lenv* e, lval* k, lval* v){
+void lenv_del(lenv* e);
 
