@@ -2,7 +2,7 @@
 #include <math.h>
 
 
-typedef struct { 
+typedef struct {
     int type;
     long num;
     int err;
@@ -15,15 +15,15 @@ double eval(mpc_ast_t* t);
 double eval_op(double x, char* op, double y);
 int count_leaves(mpc_ast_t* t);
 int count_branches(mpc_ast_t* t);
-double min (double x, double y); 
-double max (double x, double y); 
+double min (double x, double y);
+double max (double x, double y);
 
 
-#ifdef _WIN32 
+#ifdef _WIN32
 
 static char buffer[2048];
 
-char* readline(char* prompt) { 
+char* readline(char* prompt) {
     fputs(prompt, stdout);
     fgets(buffer, 2048, stdin);
     char* cpy = malloc(strlen(buffer)+1);
@@ -33,10 +33,14 @@ char* readline(char* prompt) {
 
 void add_history(char* unused) {}
 
-#else 
-
-#include <editline.h>
-
+#else
+    // ubuntu
+    #ifdef __READLINE__
+        #include <readline.h>
+    #else
+    // arch
+        #include <editline/readline.h>
+    #endif
 #endif
 
 int main(int argc, char** argv){
@@ -61,13 +65,13 @@ int main(int argc, char** argv){
     while(1){
         char* input = readline("lispy> ");
         add_history(input);
-        
+
         mpc_result_t r;
 
         if (mpc_parse("<stdin>", input, Lispy, &r)) {
             mpc_ast_print(r.output);
             puts("\n");
-            double result = eval(r.output); 
+            double result = eval(r.output);
             printf("Result: %f\n", result);
             printf("Leaf Count: %i\n", count_leaves(r.output));
             mpc_ast_delete(r.output);
@@ -77,7 +81,7 @@ int main(int argc, char** argv){
         }
         free(input);
     }
-    
+
     mpc_cleanup(4, Number, Operator, Expr, Lispy);
 
     return 0;
@@ -86,7 +90,7 @@ int main(int argc, char** argv){
 double eval(mpc_ast_t* t){
 
     if (strstr(t->tag, "number") != 0) { return atof(t->contents); }
-    
+
     char* op = t->children[1]->contents;
     double x = eval(t->children[2]);
 
@@ -99,7 +103,7 @@ double eval(mpc_ast_t* t){
     return x;
 }
 
-double eval_op(double x, char* op, double y) { 
+double eval_op(double x, char* op, double y) {
     if (strcmp(op, "+") == 0) { return x + y; }
     if (strcmp(op, "-") == 0) { return x - y; }
     if (strcmp(op, "/") == 0) { return x / y; }
@@ -112,9 +116,9 @@ double eval_op(double x, char* op, double y) {
     return 0;
 }
 
-int count_leaves(mpc_ast_t* t){ 
-    if (t->children_num == 0){ 
-        return 1;  
+int count_leaves(mpc_ast_t* t){
+    if (t->children_num == 0){
+        return 1;
     }
 
     int i = 0;
@@ -131,20 +135,20 @@ int count_branches(mpc_ast_t* t){
     return 1;
 }
 
-double min (double x, double y){ 
+double min (double x, double y){
     if (x > y) { return y; }
     return x;
 }
 
-double max (double x, double y){ 
+double max (double x, double y){
     if (x < y) { return y; }
     return x;
 }
 
 void lval_print(lval v){
-    switch (v.type) { 
+    switch (v.type) {
         case LVAL_NUM: printf("%li", v.num);break;
-        case LVAL_ERR: 
+        case LVAL_ERR:
             if (v.err == LERR_DIV_ZERO) { printf("Error: Division by Zero!"); }
             if (v.err == LERR_BAD_OP) { printf("Error: Division by Zero!"); }
             if (v.err == LERR_BAD_NUM) { printf("Error: Division by Zero!"); }
@@ -153,7 +157,7 @@ void lval_print(lval v){
 }
  void lval_println(lval v) { lval_print(v); putchar('\n');}
 
-val lval_num(long x){ 
+lval lval_num(long x){
     lval v;
     v.type = LVAL_ERR;
     v.num = x;
