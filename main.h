@@ -1,6 +1,24 @@
 #include "mpc.h"
 #include <math.h>
-
+#ifdef _WIN32
+static char buffer[2048];
+char* readline(char* prompt) {
+    fputs(prompt, stdout);
+    fgets(buffer, 2048, stdin);
+    char* cpy = malloc(strlen(buffer)+1);
+    strcpy(cpy, buffer);
+    cpy[strlen(cpy)-1] = '\0';
+}
+void add_history(char* unused) {}
+#else
+    // ubuntu
+    #ifdef __READLINE__
+        #include <readline.h>
+    #else
+    // arch
+        #include <editline/readline.h>
+    #endif
+#endif
 
 typedef struct lval {
     int type;
@@ -37,26 +55,3 @@ lval* lval_add(lval* v, lval* x);
 lval* lval_read_num(mpc_ast_t* t);
 lval* lval_read(mpc_ast_t* t);
 
-#ifdef _WIN32
-
-static char buffer[2048];
-
-char* readline(char* prompt) {
-    fputs(prompt, stdout);
-    fgets(buffer, 2048, stdin);
-    char* cpy = malloc(strlen(buffer)+1);
-    strcpy(cpy, buffer);
-    cpy[strlen(cpy)-1] = '\0';
-}
-
-void add_history(char* unused) {}
-
-#else
-    // ubuntu
-    #ifdef __READLINE__
-        #include <readline.h>
-    #else
-    // arch
-        #include <editline/readline.h>
-    #endif
-#endif

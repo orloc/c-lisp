@@ -14,8 +14,8 @@ int main(int argc, char** argv){
             number      : /-?[0-9]+/;                                            \
             symbol    : '+' | '-' | '/' | '*';                                  \
             sexpr    : '(' <expr>* ')';                                         \
-            qexpr    : '(' <expr>* ')';                                         \
-            expr        : <number> | <symbol> | <sexpr> ;                       \
+            qexpr    : '{' <expr>* '}';                                         \
+            expr        : <number> | <symbol> | <sexpr> | <qexpr> ;                       \
             lispy       : /^/ <expr>* /$/;                                      \
         ",
     Number, Symbol, Sexpr, Qexpr, Expr, Lispy);
@@ -61,7 +61,7 @@ void lval_print(lval* v){
         case LVAL_ERR: printf("Error: %s", v->err); break;
         case LVAL_SYM: printf("%s", v->sym); break;
         case LVAL_SEXPR: lval_expr_print(v, '(', ')'); break;
-        case LVAL_QEXPR: lval_expr_print(v, '(', ')'); break;
+        case LVAL_QEXPR: lval_expr_print(v, '{', '}'); break;
     }
 }
  void lval_println(lval* v) {
