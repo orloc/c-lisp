@@ -55,11 +55,33 @@ void lval_expr_print(lval* v, char open, char close){
     putchar(close);
 }
 
+lenv* lenv_new(void) {
+    lenv* e = malloc(sizeof(lenv));
+
+    e->count = 0;
+    e->syms = NULL;
+    e->vals = NULL;
+
+    return e;
+}
+
+void lenv_del(lenv* e){
+    for( int i = 0; i < e->count; i++){
+        free(e->syms[i]);
+        lval_del(e->vals[i]);
+    }
+
+    free(e->syms);
+    free(e->vals);
+    free(e);
+}
+
 void lval_print(lval* v){
     switch (v->type) {
         case LVAL_NUM: printf("%li", v->num); break;
         case LVAL_ERR: printf("Error: %s", v->err); break;
         case LVAL_SYM: printf("%s", v->sym); break;
+        case LVAL_FUN: printf("<function>"); break;
         case LVAL_SEXPR: lval_expr_print(v, '(', ')'); break;
         case LVAL_QEXPR: lval_expr_print(v, '{', '}'); break;
     }
@@ -72,7 +94,9 @@ void lval_print(lval* v){
 void lval_del(lval* v){
     switch(v->type){
         // dont do anything
-        case LVAL_NUM:  break;
+        case LVAL_NUM:
+        case LVAL_FUN:  break;
+
         case LVAL_ERR: free(v->err); break;
         case LVAL_SYM: free(v->sym); break;
 
@@ -88,6 +112,32 @@ void lval_del(lval* v){
 
     // free the initial value
     free(v);
+}
+
+lval* lval_copy(lval* v){
+    lval* x = malloc(sizeof(lval));
+    x->type = v->type;
+
+    switch(v->type){
+        // copy numbers and function direclty
+        case LVAL_FUN: x->fun = v->fun; break;
+        case LVAL_NUM: x->num = v->num; break;
+
+        // allocate and copy symbols and errors
+        case LVAL_SYM: x->sym = malloc(strlen(v->sym)+1); strcpy(x->sym, v->sym); break;
+        case LVAL_ERR: x->err = malloc(strlen(v->err)+1); strcpy(x->err, v->err); break;
+
+        case LVAL_SEXPR:
+        case LVAL_QEXPR:
+            x->count = v->count;
+            x->cell = malloc(sizeof(lval*) * x->count);
+            for ( int i = 0 ; i < x->count; i++){
+                    x->cell[i]  = lval_copy(v->cell[i]);
+            }
+        break;
+    }
+
+    return x;
 }
 
 /* Construct new pointer to a new number lval */
@@ -113,6 +163,13 @@ lval* lval_sym(char* s) {
     v->type = LVAL_SYM;
     v->sym = malloc(strlen(s)+1);
     strcpy(v->sym, s);
+    return v;
+}
+
+lval* lval_fun(lbuiltin func){
+    lval* v = malloc(sizeof(lval));
+    v->type = LVAL_FUN;
+    v->fun = func;
     return v;
 }
 
