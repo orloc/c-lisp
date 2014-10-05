@@ -61,6 +61,7 @@ void lval_print(lval* v){
         case LVAL_ERR: printf("Error: %s", v->err); break;
         case LVAL_SYM: printf("%s", v->sym); break;
         case LVAL_SEXPR: lval_expr_print(v, '(', ')'); break;
+        case LVAL_QEXPR: lval_expr_print(v, '(', ')'); break;
     }
 }
  void lval_println(lval* v) {
@@ -77,6 +78,7 @@ void lval_del(lval* v){
 
         // We need to recurse into this to delete everything
         case LVAL_SEXPR:
+        case LVAL_QEXPR:
             for (int i = 0; i < v->count; i++){
                 lval_del(v->cell[i]);
             }
@@ -123,6 +125,14 @@ lval* lval_sexpr(void) {
     return v;
 }
 
+lval* lval_qexpr(void){
+    lval* v = malloc(sizeof(lval));
+    v->type = LVAL_QEXPR;
+    v->count = 0;
+    v->cell = NULL;
+    return v;
+}
+
 lval* lval_add(lval* v, lval* x) {
     v->count++;
     v->cell = realloc(v->cell, sizeof(lval*) * v->count);
@@ -153,6 +163,8 @@ lval* lval_read(mpc_ast_t* t) {
         if (strcmp(t->children[i]->tag, "regex") == 0) { continue; }
         x = lval_add(x, lval_read(t->children[i]));
     }
+
+    if (strstr(t->tag, "qexpr")) { x = lval_qexpr(); }
 
     return x;
 }
