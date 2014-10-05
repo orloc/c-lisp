@@ -2,13 +2,19 @@
 #include <math.h>
 
 
-typedef struct {
+typedef struct lval {
     int type;
     long num;
-    int err;
+
+    char* err;
+    char* sym;
+
+    int count;
+
+    struct lval** cell;
 } lval;
 
-enum { LVAL_NUM, LVAL_ERR };
+enum { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR };
 enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 
 double eval(mpc_ast_t* t);
@@ -46,18 +52,20 @@ void add_history(char* unused) {}
 int main(int argc, char** argv){
 
     mpc_parser_t* Number    = mpc_new("number");
-    mpc_parser_t* Operator  = mpc_new("operator");
+    mpc_parser_t* Symbol  = mpc_new("symbol");
+    mpc_parser_t* Sexpr  = mpc_new("sexpr");
     mpc_parser_t* Expr      = mpc_new("expr");
     mpc_parser_t* Lispy     = mpc_new("lispy");
 
     mpca_lang(MPCA_LANG_DEFAULT,
         "                                                                       \
-            number      : /-?[0-9]+\\.?[0-9]*/;                                 \
-            operator    : '+' | '-' | '/' | '*' | '%' | '^' | \"min\" | \"max\";\
-            expr        : <number> | '(' <operator> <expr>+ ')';                \
-            lispy       : /^/ <operator> <expr>+ /$/;                           \
+            number      : /-?[0-9]+;                                            \
+            symbol    : '+' | '-' | '/' | '*';                                  \
+            sexpr    : '(' <expr>* ')';                                         \
+            expr        : <number> | <symbol> | <sexpr> ;                       \
+            lispy       : /^/ <expr>* /$/;                                      \
         ",
-    Number, Operator, Expr, Lispy);
+    Number, Symbol, Sexpr, Expr, Lispy);
 
     puts("Lispy Version 0.0.0.1");
     puts("Ctrl+c to Exit\n");
@@ -82,7 +90,7 @@ int main(int argc, char** argv){
         free(input);
     }
 
-    mpc_cleanup(4, Number, Operator, Expr, Lispy);
+    mpc_cleanup(5, Number, Symbol, Sexpr, Expr, Lispy);
 
     return 0;
 }
