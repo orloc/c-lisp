@@ -28,7 +28,7 @@ int main(int argc, char** argv){
         mpc_result_t r;
 
         if (mpc_parse("<stdin>", input, Lispy, &r)) {
-            lval* x = lval_read(r.output);
+            lval* x = lval_eval(lval_read(r.output));
             lval_println(x);
             lval_del(x);
         }
@@ -39,34 +39,6 @@ int main(int argc, char** argv){
 
     return 0;
 }
-
-double eval(mpc_ast_t* t){
-
-    if (strstr(t->tag, "number") != 0) { return atof(t->contents); }
-
-    char* op = t->children[1]->contents;
-    double x = eval(t->children[2]);
-
-    int i = 3;
-    while(i < t->children_num && strstr(t->children[i]->tag, "expr")) {
-        x = eval_op(x, op, eval(t->children[i]));
-        i++;
-    }
-
-    return x;
-}
-
-double eval_op(double x, char* op, double y) {
-    if (strcmp(op, "+") == 0) { return x + y; }
-    if (strcmp(op, "-") == 0) { return x - y; }
-    if (strcmp(op, "/") == 0) { return x / y; }
-    if (strcmp(op, "*") == 0) { return x * y; }
-    if (strcmp(op, "%") == 0) { return fmod(x,y); }
-    if (strcmp(op, "^") == 0) { return pow(x,y); }
-
-    return 0;
-}
-
 
 void lval_expr_print(lval* v, char open, char close){
     putchar(open);
@@ -241,3 +213,44 @@ lval* lval_take(lval* v, int i) {
     lval_del(v);
     return x;
 }
+
+lval* builtin_op(lval* a, char* op){
+    // ensure everything is a number
+    for (int i = 0; i < a->count; i++) {
+        if (a->cell[i]->type != LVAL_NUM){
+            lval_del(a);
+            return lval_err("Cannot operate on a non-number");
+        }
+    }
+
+    lval* x = lval_pop(a, 0);
+
+    // if no arguments and sub preform unary negation
+    if ((strcmp(op, "-") == 0 ) && a->count == 0) {
+        x->num = -x->num;
+    }
+
+    while (a->count > 0){
+        lval* y = lval_pop(a, 0);
+
+        if (strcmp(op, "+") == 0) { x->num += y->num; }
+        if (strcmp(op, "-") == 0) { x->num -= y->num; }
+        if (strcmp(op, "*") == 0) { x->num *= y->num; }
+        if (strcmp(op, "/") == 0) {
+            if (y->num == 0){
+                lval_del(x); lval_del(y);
+                x = lval_err("Divisin By Zero!"); break;
+            }
+            x->num /= y->num;
+        }
+
+        // delete finsihed elements
+        lval_del(y);
+    }
+
+    // delete input expression and return result;
+    lval_del(a);
+
+    return x;
+}
+
