@@ -289,8 +289,8 @@ lval* builtin_op(lval* a, char* op){
 
 lval* builtin_head(lval* a) {
     LASSERT(a,(a->count == 1), "Function 'head' passed too many arguments!");
-    LASSERT(a,(a->cell[0]->type != LVAL_QEXPR), "Function 'head' passed incorrect type!");
-    LASSERT(a,(a->cell[0]->count == 0), "Function 'head' passed {}");
+    LASSERT(a,(a->cell[0]->type == LVAL_QEXPR), "Function 'head' passed incorrect type!");
+    LASSERT(a,(a->cell[0]->count != 0), "Function 'head' passed {}");
 
     lval* v = lval_take(a, 0);
 
@@ -302,8 +302,8 @@ lval* builtin_head(lval* a) {
 
 lval* builtin_tail(lval* a){
     LASSERT(a,(a->count == 1), "Function 'tail' passed too many arguments!");
-    LASSERT(a,(a->cell[0]->type != LVAL_QEXPR), "Function 'tail' passed incorrect type!");
-    LASSERT(a,(a->cell[0]->count == 0), "Function 'tail' passed {}");
+    LASSERT(a,(a->cell[0]->type == LVAL_QEXPR), "Function 'tail' passed incorrect type!");
+    LASSERT(a,(a->cell[0]->count != 0), "Function 'tail' passed {}");
 
     lval* v = lval_take(a, 0);
     lval_del(lval_pop(v,0));
